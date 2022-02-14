@@ -37,7 +37,7 @@ FATAL_ERROR
 )
 endif()
 
-if(NOT BUILD_DEBUG)
+if (NOT BUILD_DEBUG)
 	add_compile_definitions(NDEBUG)
 endif()
 

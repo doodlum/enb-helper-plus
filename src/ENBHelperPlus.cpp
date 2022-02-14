@@ -1,20 +1,47 @@
-
 #include "ENBHelperPlus.h"
+
+#pragma pack(push, 1)
+struct AbsoluteJump
+{
+	std::uint8_t jump{ 0xFF };       // 0
+	std::uint8_t modRm{ 0x25 };      // 1
+	std::int32_t relative32{ 0x0 };  // 2
+	std::int64_t absolute64;         // 6
+};
+#pragma pack(pop)
+
+void JumpProcAddress(FARPROC procAddress, int64_t address) 
+{
+	AbsoluteJump patch;
+	patch.absolute64 = address;
+	REL::safe_write(reinterpret_cast<std::uintptr_t>(procAddress), &patch, sizeof(AbsoluteJump));
+}
 
 void ENBHelperPlus::InstallHooks()
 {
-	HMODULE enbhelper = LoadLibrary(TEXT("enbhelperse.dll"));
 
-	auto& trampoline = SKSE::GetTrampoline();
+#ifdef SKYRIMVR
+	HMODULE enbhelper = LoadLibrary(".\\Data\\SKSE\\Plugins\\enbhelpervr.dll");
+#else
+	HMODULE enbhelper = LoadLibrary(".\\Data\\SKSE\\Plugins\\enbhelperse.dll");
+#endif
 
-	_GetWeatherTransition	= trampoline.write_call<5>(reinterpret_cast<std::uintptr_t>(GetProcAddress(enbhelper, "GetWeatherTransition")), GetWeatherTransition);
-	_GetCurrentWeather		= trampoline.write_call<5>(reinterpret_cast<std::uintptr_t>(GetProcAddress(enbhelper, "GetCurrentWeather")), GetCurrentWeather);
-	_GetOutgoingWeather		= trampoline.write_call<5>(reinterpret_cast<std::uintptr_t>(GetProcAddress(enbhelper, "GetOutgoingWeather")), GetOutgoingWeather);
+	if (enbhelper) {
+		assert(GetProcAddress(enbhelper, "GetWeatherTransition"));
+		assert(GetProcAddress(enbhelper, "GetCurrentWeather"));
+		assert(GetProcAddress(enbhelper, "GetOutgoingWeather"));
+
+		JumpProcAddress(GetProcAddress(enbhelper, "GetWeatherTransition"),	reinterpret_cast<int64_t>(&ENBHelperPlus::GetWeatherTransition));
+		JumpProcAddress(GetProcAddress(enbhelper, "GetCurrentWeather"),		reinterpret_cast<int64_t>(&ENBHelperPlus::GetCurrentWeather));
+		JumpProcAddress(GetProcAddress(enbhelper, "GetOutgoingWeather"),	reinterpret_cast<int64_t>(&ENBHelperPlus::GetOutgoingWeather));
+	} else {
+		logger::warn("ENB Helper not present, which must be installed for ENB Helper Plus to function.");
+	}
 }
 
 bool ENBHelperPlus::CheckValidInterior(RE::PlayerCharacter* player)
 {
-	return (player && player->parentCell && player->parentCell->IsInteriorCell() && player->parentCell->lightingTemplate);
+	return (player && player->parentCell && player->parentCell->IsInteriorCell() && player->parentCell->lightingTemplate && !player->parentCell->UsesSkyLighting());
 }
 
 bool ENBHelperPlus::GetWeatherTransition(float& t)

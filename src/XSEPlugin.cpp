@@ -3,7 +3,6 @@
 
 void Init()
 {
-	SKSE::AllocTrampoline(128);
 	Hooks::Install();
 }
 
