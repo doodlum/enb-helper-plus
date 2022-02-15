@@ -1,5 +1,8 @@
 #pragma once
 
+static RE::BGSLightingTemplate* currentRoomLightingTemplate;
+static RE::BGSLightingTemplate* previousRoomLightingTemplate;
+
 class ENBHelperPlus
 {
 public:
@@ -8,7 +11,7 @@ public:
 private:
 	ENBHelperPlus() = default;
 
-	static bool CheckValidInterior(RE::PlayerCharacter* player);
+	static bool ValidInterior(RE::PlayerCharacter* player);
 
 	static bool GetWeatherTransition(float& t);
 
@@ -16,10 +19,10 @@ private:
 
 	static bool GetOutgoingWeather(DWORD& id);
 
-	static inline REL::Relocation<decltype(GetWeatherTransition)> _GetWeatherTransition;
+	static RE::BGSLightingTemplate* GetPreviousRoomLightingTemplate(RE::Sky* sky);
+	static RE::BGSLightingTemplate* GetCurrentRoomLightingTemplate(RE::Sky* sky);
 
-	static inline REL::Relocation<decltype(GetCurrentWeather)> _GetCurrentWeather;
-
-	static inline REL::Relocation<decltype(GetOutgoingWeather)> _GetOutgoingWeather;
-
+	static inline REL::Relocation<decltype(GetPreviousRoomLightingTemplate)> _GetPreviousRoomLightingTemplate;
+	static inline REL::Relocation<decltype(GetCurrentRoomLightingTemplate)> _GetCurrentRoomLightingTemplate;
 };
+

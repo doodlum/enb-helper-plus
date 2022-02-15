@@ -34,6 +34,7 @@
 using namespace std::literals;
 
 namespace logger = SKSE::log;
+namespace string = SKSE::stl::string;
 
 namespace util
 {
@@ -43,3 +44,15 @@ namespace util
 #define DLLEXPORT __declspec(dllexport)
 
 #include "Plugin.h"
+
+#pragma pack(push, 1)
+struct AbsoluteJump
+{
+	std::uint8_t jump{ 0xFF };       // 0
+	std::uint8_t modRm{ 0x25 };      // 1
+	std::int32_t relative32{ 0x0 };  // 2
+	std::int64_t absolute64;         // 6
+};
+#pragma pack(pop)
+
+void JumpProcAddress(FARPROC procAddress, int64_t address);
