@@ -13,12 +13,18 @@ void ENBHelperPlus::InstallHooks()
 		return;
 	}
 
-	JumpProcAddress(GetProcAddress(enbhelper, "GetWeatherTransition"),	reinterpret_cast<int64_t>(&ENBHelperPlus::GetWeatherTransition));
-	JumpProcAddress(GetProcAddress(enbhelper, "GetCurrentWeather"),		reinterpret_cast<int64_t>(&ENBHelperPlus::GetCurrentWeather));
-	JumpProcAddress(GetProcAddress(enbhelper, "GetOutgoingWeather"),	reinterpret_cast<int64_t>(&ENBHelperPlus::GetOutgoingWeather));
+	JumpProcAddress(GetProcAddress(enbhelper, "GetWeatherTransition"),	std::bit_cast<int64_t>(&ENBHelperPlus::GetWeatherTransition));
+	JumpProcAddress(GetProcAddress(enbhelper, "GetCurrentWeather"),		std::bit_cast<int64_t>(&ENBHelperPlus::GetCurrentWeather));
+	JumpProcAddress(GetProcAddress(enbhelper, "GetOutgoingWeather"),	std::bit_cast<int64_t>(&ENBHelperPlus::GetOutgoingWeather));
 
 #if defined(SKYRIMAE)
+	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_first{ REL::ID(26250), 0x139 };
+	REL::Relocation<std::uintptr_t> GetPreviousRoomLightingTemplate_hook{ REL::ID(26250), 0x57 };
+	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_second{ REL::ID(26250), 0x84 };
 #elif defined(SKYRIMVR)
+	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_first{ REL::ID(25703), 0x134 };
+	REL::Relocation<std::uintptr_t> GetPreviousRoomLightingTemplate_hook{ REL::ID(25703), 0x57 };
+	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_second{ REL::ID(25703), 0x84 };
 #else
 	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_first{ REL::ID(25703), 0x134 };
 	REL::Relocation<std::uintptr_t> GetPreviousRoomLightingTemplate_hook{ REL::ID(25703), 0x57 };
@@ -28,11 +34,11 @@ void ENBHelperPlus::InstallHooks()
 	auto& trampoline = SKSE::GetTrampoline();
 
 	// standard
-	_GetCurrentRoomLightingTemplate = trampoline.write_call<5>(GetCurrentRoomLightingTemplate_hook_first.address(), GetCurrentRoomLightingTemplate);
+	trampoline.write_call<5>(GetCurrentRoomLightingTemplate_hook_first.address(), GetCurrentRoomLightingTemplate);
 
 	// transitions
-	_GetPreviousRoomLightingTemplate = trampoline.write_call<5>(GetPreviousRoomLightingTemplate_hook.address(), GetPreviousRoomLightingTemplate);
-	_GetCurrentRoomLightingTemplate = trampoline.write_call<5>(GetCurrentRoomLightingTemplate_hook_second.address(), GetCurrentRoomLightingTemplate);
+	_GetPreviousRoomLightingTemplate	= trampoline.write_call<5>(GetPreviousRoomLightingTemplate_hook.address(), GetPreviousRoomLightingTemplate);
+	_GetCurrentRoomLightingTemplate		= trampoline.write_call<5>(GetCurrentRoomLightingTemplate_hook_second.address(), GetCurrentRoomLightingTemplate);
 }
 
 RE::BGSLightingTemplate* ENBHelperPlus::GetPreviousRoomLightingTemplate(RE::Sky* sky)
@@ -59,7 +65,11 @@ bool ENBHelperPlus::GetWeatherTransition(float& t)
 
 	if (sky) {
 		if (ValidInterior(player)) {
-			t = sky->lightingTransition == 0.00f ? 1.00f : sky->lightingTransition;
+			if (sky->lightingTransition <= 0.00f || sky->lightingTransition >= 1.00f) {
+				t = 1.00f;
+			} else {
+				t = sky->lightingTransition;
+			}
 		} else {
 			t = sky->currentWeatherPct;
 		}

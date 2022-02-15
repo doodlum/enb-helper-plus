@@ -1,5 +1,4 @@
 #pragma once
-
 #pragma warning(push)
 #if defined(FALLOUT4)
 #include "RE/Fallout.h"
@@ -34,7 +33,6 @@
 using namespace std::literals;
 
 namespace logger = SKSE::log;
-namespace string = SKSE::stl::string;
 
 namespace util
 {

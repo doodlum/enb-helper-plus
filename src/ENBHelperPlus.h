@@ -1,8 +1,5 @@
 #pragma once
 
-static RE::BGSLightingTemplate* currentRoomLightingTemplate;
-static RE::BGSLightingTemplate* previousRoomLightingTemplate;
-
 class ENBHelperPlus
 {
 public:
@@ -22,7 +19,10 @@ private:
 	static RE::BGSLightingTemplate* GetPreviousRoomLightingTemplate(RE::Sky* sky);
 	static RE::BGSLightingTemplate* GetCurrentRoomLightingTemplate(RE::Sky* sky);
 
+	static inline REL::Relocation<decltype(GetCurrentRoomLightingTemplate)>  _GetCurrentRoomLightingTemplate;
 	static inline REL::Relocation<decltype(GetPreviousRoomLightingTemplate)> _GetPreviousRoomLightingTemplate;
-	static inline REL::Relocation<decltype(GetCurrentRoomLightingTemplate)> _GetCurrentRoomLightingTemplate;
+
+	static inline RE::BGSLightingTemplate* currentRoomLightingTemplate;
+	static inline RE::BGSLightingTemplate* previousRoomLightingTemplate;
 };
 
