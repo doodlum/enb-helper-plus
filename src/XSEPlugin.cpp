@@ -57,6 +57,7 @@ EXTERN_C [[maybe_unused]] __declspec(dllexport) constinit auto SKSEPlugin_Versio
 	v.PluginName(Plugin::NAME.data());
 	v.PluginVersion(Plugin::VERSION);
 	v.UsesAddressLibrary(true);
+	v.HasNoStructUse();
 	return v;
 }();
 

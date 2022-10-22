@@ -41,7 +41,7 @@ RE::BGSLightingTemplate* ENBHelperPlus::GetCurrentRoomLightingTemplate(RE::Sky* 
 
 bool ENBHelperPlus::ValidInterior(RE::PlayerCharacter* player)
 {
-	return (player && player->parentCell && player->parentCell->IsInteriorCell() && !player->parentCell->UsesSkyLighting() && player->parentCell->lightingTemplate);
+	return (player && player->parentCell && player->parentCell->IsInteriorCell() && !player->parentCell->UsesSkyLighting() && player->parentCell->GetRuntimeData().lightingTemplate);
 }
 
 bool ENBHelperPlus::GetWeatherTransition(float& t)
@@ -75,7 +75,7 @@ bool ENBHelperPlus::GetCurrentWeather(DWORD& id)
 			if (currentRoomLightingTemplate) {
 				id = currentRoomLightingTemplate->GetFormID();
 			} else {
-				id = player->parentCell->lightingTemplate->GetFormID();
+				id = player->parentCell->GetRuntimeData().lightingTemplate->GetFormID();
 			}
 			return true;
 		} else if (sky->currentWeather) {
