@@ -2,11 +2,7 @@
 
 void ENBHelperPlus::InstallHooks()
 {
-#ifdef SKYRIMVR
-	HMODULE enbhelper = LoadLibrary(".\\Data\\SKSE\\Plugins\\enbhelpervr.dll");
-#else
-	HMODULE enbhelper = LoadLibrary(".\\Data\\SKSE\\Plugins\\enbhelperse.dll");
-#endif
+	HMODULE enbhelper = REL::Module::IsVR() ? LoadLibraryA(".\\Data\\SKSE\\Plugins\\enbhelpervr.dll") : LoadLibraryA(".\\Data\\SKSE\\Plugins\\enbhelperse.dll");
 
 	if (!enbhelper) {
 		logger::warn("ENB Helper not present, which must be installed for ENB Helper Plus to function.");
@@ -17,19 +13,9 @@ void ENBHelperPlus::InstallHooks()
 	JumpProcAddress(GetProcAddress(enbhelper, "GetCurrentWeather"),		std::bit_cast<int64_t>(&ENBHelperPlus::GetCurrentWeather));
 	JumpProcAddress(GetProcAddress(enbhelper, "GetOutgoingWeather"),	std::bit_cast<int64_t>(&ENBHelperPlus::GetOutgoingWeather));
 
-#if defined(SKYRIMAE)
-	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_first{ REL::ID(26250), 0x139 };
-	REL::Relocation<std::uintptr_t> GetPreviousRoomLightingTemplate_hook{ REL::ID(26250), 0x57 };
-	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_second{ REL::ID(26250), 0x84 };
-#elif defined(SKYRIMVR)
-	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_first{ REL::ID(25703), 0x134 };
-	REL::Relocation<std::uintptr_t> GetPreviousRoomLightingTemplate_hook{ REL::ID(25703), 0x57 };
-	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_second{ REL::ID(25703), 0x84 };
-#else
-	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_first{ REL::ID(25703), 0x134 };
-	REL::Relocation<std::uintptr_t> GetPreviousRoomLightingTemplate_hook{ REL::ID(25703), 0x57 };
-	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_second{ REL::ID(25703), 0x84 };
-#endif
+	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_first{ REL::RelocationID(25703, 26250, 0x1403C5400), REL::Relocate(0x134,  0x139)};
+	REL::Relocation<std::uintptr_t> GetPreviousRoomLightingTemplate_hook{ REL::RelocationID(25703, 26250, 0x1403C5400), REL::Relocate(0x57, 0x57) };
+	REL::Relocation<std::uintptr_t> GetCurrentRoomLightingTemplate_hook_second{ REL::RelocationID(25703, 26250, 0x1403C5400), REL::Relocate(0x84, 0x84) };
 
 	auto& trampoline = SKSE::GetTrampoline();
 
